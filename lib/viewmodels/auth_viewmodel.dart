@@ -1,83 +1,141 @@
+import 'package:elaisa_app/services/firestore_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../models/user_model.dart';
-import 'package:flutter/foundation.dart';
 
-class AuthViewModel {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+class AuthViewModel extends ChangeNotifier {
+  final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
 
-  Future<UserModel?> signInWithGoogle() async {
+  bool _isLoading = false;
+  String? _errorMessage;
+  UserModel? _userModel;
+  String uid =
+      ''; // To store the UID when the userModel is not yet loaded from Firestore
+
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  UserModel? get userModel => _userModel;
+  Stream<User?> get onAuthStateChanged => _authService.onAuthStateChanged;
+  set userModel(UserModel? model) => _userModel = model;
+
+  Future<void> signInWithGoogle() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // User canceled the sign-in
-        return null;
-      }
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
-
-      return _getUserModel(userCredential.user, false, false);
+      _userModel = await _authService.signInWithGoogle();
     } catch (e) {
-      // ignore: avoid_print
-      print('Error signing in with Google: $e');
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    return null;
   }
 
-  UserModel? _getUserModel(User? user, bool isAnonymous, bool isPremium) {
-    if (user != null) {
-      return UserModel(
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoUrl: user.photoURL,
-        isAnonymous: isAnonymous,
-        isPremium: isPremium,
-      );
-    }
-    return null;
-  }
-
-  Future<UserModel?> signInAnonymously() async {
-    try {
-      final UserCredential userCredential = await _auth.signInAnonymously();
-      return _getUserModel(userCredential.user, true, false);
-    } on FirebaseAuthException catch (e) {
-      // ignore: avoid_print
-      print("Anonymous sign-in error");
-    }
-    return null;
-  }
-
-  Future<UserModel?> signInWithEmailAndPassword(
+  Future<void> createUserWithEmailAndPassword(
     String email,
     String password,
   ) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      _userModel = await _authService.createUserWithEmailAndPassword(
+        email,
+        password,
       );
-      return _getUserModel(userCredential.user, false, false);
-    } on FirebaseAuthException catch (e) {
-      // ignore: avoid_print
-      print('An error occurred during sign-in.');
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signInWithEmailAndPassword(String email, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userModel = await _authService.signInWithEmailAndPassword(
+        email,
+        password,
+      );
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signInAnonymously() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userModel = await _authService.signInAnonymously();
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchUser(String uid) async {
+    try {
+      this.uid = uid;
+      _userModel = await _firestoreService.getUser(uid);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to fetch user: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> addUser(UserModel userModel) async {
+    try {
+      this.uid = userModel.uid!;
+      await _firestoreService.addUser(userModel.uid, userModel);
+      _userModel = userModel;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to add user: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateUser(String uid, Map<String, dynamic> data) async {
+    try {
+      this.uid = uid;
+      await _firestoreService.updateUser(uid, data);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to update user: $e';
+      notifyListeners();
     }
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
-    await _googleSignIn.signOut();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.signOut();
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      _userModel = null;
+      notifyListeners();
+    }
   }
 }

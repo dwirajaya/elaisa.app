@@ -1,16 +1,34 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'views/google_signin_view.dart';
-import 'theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
+import 'theme/theme.dart';
+import 'viewmodels/auth_viewmodel.dart';
+import 'services/router_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+
+  if (kDebugMode) {
+    try {
+      FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+      await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
+  }
+
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (context) => AuthViewModel())],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -20,6 +38,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = View.of(context).platformDispatcher.platformBrightness;
+    final router = RouterService();
 
     // Retrieves the default theme for the platform
     //TextTheme textTheme = Theme.of(context).textTheme;
@@ -53,10 +72,11 @@ class MyApp extends StatelessWidget {
       ),
     );
     MaterialTheme theme = MaterialTheme(textTheme);
-    return MaterialApp(
+
+    return MaterialApp.router(
       title: 'Flutter Demo New',
       theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-      home: const GoogleSignInView(),
+      routerConfig: router.router,
     );
   }
 }

@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
-class EmailSignInView extends StatelessWidget {
-  EmailSignInView({Key? key}) : super(key: key);
+class EmailSignUpView extends StatelessWidget {
+  EmailSignUpView({Key? key}) : super(key: key);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -14,7 +14,7 @@ class EmailSignInView extends StatelessWidget {
     final viewModel = Provider.of<AuthViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      appBar: AppBar(title: const Text('Sign Up')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -38,7 +38,7 @@ class EmailSignInView extends StatelessWidget {
               else
                 ElevatedButton(
                   onPressed: () async {
-                    await viewModel.signInWithEmailAndPassword(
+                    await viewModel.createUserWithEmailAndPassword(
                       _emailController.text.trim(),
                       _passwordController.text.trim(),
                     );
@@ -50,9 +50,7 @@ class EmailSignInView extends StatelessWidget {
                       if (viewModel.userModel == null) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("User not found. Please register."),
-                            ),
+                            SnackBar(content: Text("Register user error.")),
                           );
                         }
                       } else {
@@ -63,14 +61,8 @@ class EmailSignInView extends StatelessWidget {
                       }
                     }
                   },
-                  child: const Text('Sign In'),
+                  child: const Text('Sign Up'),
                 ),
-              ElevatedButton(
-                onPressed: () {
-                  context.go('/signup');
-                },
-                child: const Text('Sign Up'),
-              ),
             ],
           ),
         ),
