@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class AuthGateView extends StatelessWidget {
-  AuthGateView({Key? key}) : super(key: key);
+  const AuthGateView({super.key});
 
   @override
   Widget build(BuildContext context) {

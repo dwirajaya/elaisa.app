@@ -102,7 +102,7 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> addUser(UserModel userModel) async {
     try {
-      this.uid = userModel.uid!;
+      uid = userModel.uid!;
       await _firestoreService.addUser(userModel.uid, userModel);
       _userModel = userModel;
       notifyListeners();

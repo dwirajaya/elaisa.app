@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:elaisa_app/models/user_model.dart';
-import 'package:flutter/foundation.dart';
 
 class FirestoreService {
   final db = FirebaseFirestore.instance;

@@ -55,7 +55,7 @@ class AuthService {
     try {
       final UserCredential userCredential = await _auth.signInAnonymously();
       return _getUserModel(userCredential.user, true, false);
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       // ignore: avoid_print
       print("Anonymous sign-in error");
     }
@@ -79,6 +79,7 @@ class AuthService {
         print('The account already exists for that email.');
       }
     }
+    return null;
   }
 
   Future<UserModel?> signInWithEmailAndPassword(
@@ -91,10 +92,11 @@ class AuthService {
         password: password,
       );
       return _getUserModel(userCredential.user, false, false);
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       // ignore: avoid_print
       print('An error occurred during sign-in.');
     }
+    return null;
   }
 
   Future<void> signOut() async {

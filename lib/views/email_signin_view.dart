@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class EmailSignInView extends StatelessWidget {
-  EmailSignInView({Key? key}) : super(key: key);
+  EmailSignInView({super.key});
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();

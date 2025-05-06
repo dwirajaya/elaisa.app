@@ -9,6 +9,8 @@ import 'theme/theme.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'services/router_service.dart';
 
+// to run: flutter run -d chrome
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
